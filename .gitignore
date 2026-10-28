@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+questions.log
+
+# User uploads (staff-reviewed content)
+uploads/submissions/*
+!uploads/submissions/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Composer vendor (if PHPMailer is installed)
+vendor/
+
+# Environment overrides
+.env

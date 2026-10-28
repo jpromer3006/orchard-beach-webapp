@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orchard Beach | The Bronx Riviera | NYC Parks</title>
+  <meta name="description" content="Live conditions, safety, events, rules, an interactive map, an AI trip concierge, and parking for Orchard Beach, the Bronx's only public beach in Pelham Bay Park." />
+  <meta name="theme-color" content="#2C5A3B" />
+  <script>
+    /* Theme boot: runs before paint to avoid a flash. User choice wins, then OS preference. */
+    (function () {
+      try {
+        var saved = localStorage.getItem("ob-theme");
+        var mode = saved || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", mode);
+      } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Prototype ribbon -->
+  <div class="proto-ribbon" role="note">
+    <span class="proto-dot"></span>
+    <span data-i18n="proto">Concept prototype for stakeholder review. Built by Fordham Group 2. Not an official NYC Parks page.</span>
+  </div>
+
+  <!-- HALF OFF PARKING promo strip -->
+  <a class="promo-strip" href="#plan" id="promoStrip">
+    <span class="promo-tag" data-i18n="promo_tag">50% OFF PARKING</span>
+    <span data-i18n="promo_strip">Reserve your beach day on this site and show your code at the booth: half price parking, any day this season.</span>
+    <span class="promo-go" data-i18n="promo_cta">Reserve my day &rarr;</span>
+  </a>
+
+  <!-- Header -->
+   <header class="site-header" id="siteHeader">
+    <div class="wrap header-inner">
+      <a class="brand logo-brand" href="#top" aria-label="Orchard Beach home">
+        <img
+        class="site-logo"
+        src="images/orchard-beach-logo.png"
+        alt="Orchard Beach logo"
+        >
+
+        <span class="brand-text">
+          <span class="brand-name">Orchard Beach</span>
+          <span class="brand-sub">NYC Parks Concept</span>
+        </span>
+      </a>
+
+      <nav class="main-nav" aria-label="Primary">
+        <a href="#conditions" data-i18n="nav_conditions">Conditions</a>
+        <a href="#safety" data-i18n="nav_safety">Safety</a>
+        <a href="#visit" data-i18n="nav_visit">Plan a visit</a>
+        <a href="#rules" data-i18n="nav_rules">Rules</a>
+        <a href="#map" data-i18n="nav_map">Map</a>
+        <a href="#food" data-i18n="nav_food">Vendors</a>
+        <a href="#share" data-i18n="nav_share">Share</a>
+      </nav>
+
+      <!-- live weather, always in view -->
+      <a class="nav-weather" id="navWeather" href="#conditions" hidden title="Live beach conditions">
+        <span class="nw-ic" id="nwIcon" aria-hidden="true"></span>
+        <span class="nw-temp"><span id="nwTemp">--</span>&deg;</span>
+        <span class="nw-sub"><span data-i18n="nw_water">water</span> <span id="nwWater">--</span>&deg;</span>
+      </a>
+
+      <div class="header-tools">
+        <div class="a11y-group" role="group" aria-label="Accessibility controls">
+          <button class="tool-btn" id="ttsBtn" title="Read conditions aloud" aria-label="Read conditions aloud">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1c2.9.9 5 3.5 5 6.7s-2.1 5.8-5 6.7v2.1c4-.9 7-4.5 7-8.8s-3-7.9-7-8.8z"/></svg>
+          </button>
+          <button class="tool-btn" id="fontBtn" title="Change text size" aria-label="Change text size">A<span class="plus">+</span></button>
+          <button class="tool-btn" id="themeBtn" title="Light or dark mode" aria-label="Toggle light or dark mode">
+            <svg class="ic-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-15v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1m0-14.2-2.1 2.1m-10 10-2.1 2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+          </button>
+          <div class="lang-wrap">
+            <button class="tool-btn lang-btn" id="langBtn" title="Change language" aria-haspopup="listbox" aria-expanded="false">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm7.9 9h-3a15.6 15.6 0 0 0-1.2-5.4A8 8 0 0 1 19.9 11zM12 4c.9 1.2 1.9 3.6 2 7h-4c.1-3.4 1.1-5.8 2-7zM4.1 13h3a15.6 15.6 0 0 0 1.2 5.4A8 8 0 0 1 4.1 13zm3-2h-3a8 8 0 0 1 4.2-5.4A15.6 15.6 0 0 0 7.1 11zM12 20c-.9-1.2-1.9-3.6-2-7h4c-.1 3.4-1.1 5.8-2 7zm3.7-1.6A15.6 15.6 0 0 0 16.9 13h3a8 8 0 0 1-4.2 5.4z"/></svg>
+              <span id="langCurrent">EN</span>
+            </button>
+            <div class="lang-menu" id="langMenu" role="listbox" hidden></div>
+          </div>
+        </div>
+        <button class="staff-btn" id="openStaff">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+          <span data-i18n="staff_view">Staff view</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <span id="top"></span>
+
+    <!-- HERO -->
+    <section class="hero" aria-label="Orchard Beach overview">
+      <div class="hero-art" aria-hidden="true">
+        <img
+        class="hero-bg-photo"
+        src="images/main.png"
+        alt=""
+        >
+      </div>
+
+      <div class="wrap hero-content">
+        <p class="eyebrow" data-i18n="hero_eyebrow">Pelham Bay Park, The Bronx</p>
+        <h1 class="hero-title">Orchard Beach</h1>
+        <p class="hero-tag" data-i18n="hero_tag">The Bronx Riviera. One page for everything you need before you go.</p>
+
+        <div class="status-strip" id="statusStrip" aria-live="polite">
+          <div class="status-pill" id="beachStatus">
+            <span class="pill-label" data-i18n="status_beach">Beach</span>
+            <span class="pill-value" id="beachStatusValue">Checking</span>
+          </div>
+          <div class="status-pill" id="guardStatus">
+            <span class="pill-label" data-i18n="status_guard">Lifeguards</span>
+            <span class="pill-value" id="guardStatusValue">Checking</span>
+          </div>
+          <div class="status-pill" id="waterStatus">
+            <span class="pill-label" data-i18n="status_water">Water quality</span>
+            <span class="pill-value ok" id="waterStatusValue">Acceptable</span>
+          </div>
+        </div>
+        <div class="hero-ctas">
+          <a class="hero-cta" href="#conditions" data-i18n="hero_cta">See live conditions</a>
+          <button class="hero-cta hero-cta-alt" id="heroConcierge" data-i18n="hero_cta2">Plan my day with the Concierge</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORCHARD BEACH FACTS + photo, at the top (v2.4) -->
+    <section class="section intro-band" id="about">
+      <div class="wrap intro-grid">
+        <figure class="shot hero-shot" data-img="images/hero.jpg" data-label="Orchard Beach"><figcaption data-i18n="g_hero">Orchard Beach, the Bronx Riviera</figcaption></figure>
+        <div class="intro-facts">
+          <p class="kicker" data-i18n="k_facts">Straight from NYC Parks</p>
+          <div class="facts-strip">
+            <span class="fact-chip" data-i18n="fact_riviera">"The Riviera of New York" since the 1930s</span>
+            <span class="fact-chip" data-i18n="fact_acres">115 acres</span>
+            <span class="fact-chip" data-i18n="fact_mile">1.1 mile crescent</span>
+            <span class="fact-chip" data-i18n="fact_courts">26 courts</span>
+            <span class="fact-chip" data-i18n="fact_play">2 playgrounds</span>
+            <span class="fact-chip" data-i18n="fact_picnic">2 picnic areas</span>
+            <span class="fact-chip" data-i18n="fact_showers">Changing areas &amp; showers</span>
+          </div>
+          <p class="section-intro" data-i18n="p_about">The Bronx's only public beach: a hexagonal block promenade, the central pavilion, snack bars and souvenir carts, two playgrounds, two picnic groves, a large parking lot, and 26 courts for basketball, volleyball, and handball, with changing areas and showers on site.</p>
+          <a class="fact-src" href="https://www.nycgovparks.org/facilities/beaches/1" target="_blank" rel="noopener" data-i18n="facts_src">Facts: official NYC Parks page</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE CONDITIONS (kept from v1) -->
+    <section class="section conditions" id="conditions">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker" data-i18n="k_live">Live now</p>
+            <h2 data-i18n="h_conditions">Beach conditions</h2>
+          </div>
+          <div class="updated">
+            <span id="updatedText" data-i18n="loading">Loading live data...</span>
+            <button class="refresh-btn" id="refreshBtn" data-i18n="refresh">Refresh</button>
+          </div>
+        </div>
+
+        <div class="instrument-panel" id="instrumentPanel">
+          <div class="metric metric-lead" id="mTemp">
+            <div class="metric-icon" id="wxIcon"></div>
+            <div class="metric-body">
+              <div class="metric-value"><span id="tempVal">--</span><span class="unit">&deg;F</span></div>
+              <div class="metric-label" id="wxLabel" data-i18n="m_air">Air temperature</div>
+              <div class="metric-sub"><span data-i18n="m_feels">Feels like</span> <span id="feelsVal">--</span>&deg;</div>
+            </div>
+          </div>
+          <div class="metric"><div class="metric-value"><span id="waterTempVal">--</span><span class="unit">&deg;F</span></div><div class="metric-label" data-i18n="m_water">Water temp</div></div>
+          <div class="metric"><div class="metric-value"><span id="waveVal">--</span><span class="unit">ft</span></div><div class="metric-label" data-i18n="m_wave">Wave height</div></div>
+          <div class="metric"><div class="metric-value"><span id="windVal">--</span><span class="unit">mph</span></div><div class="metric-label" data-i18n="m_wind"><span id="windDir">Wind</span></div></div>
+          <div class="metric"><div class="metric-value"><span id="uvVal">--</span></div><div class="metric-label"><span data-i18n="m_uv">UV index</span> <span class="chip" id="uvChip"></span></div></div>
+          <div class="metric"><div class="metric-value"><span id="humidVal">--</span><span class="unit">%</span></div><div class="metric-label" data-i18n="m_humid">Humidity</div></div>
+          <div class="metric"><div class="metric-value small" id="sunriseVal">--</div><div class="metric-label" data-i18n="m_sunrise">Sunrise</div></div>
+          <div class="metric"><div class="metric-value small" id="sunsetVal">--</div><div class="metric-label" data-i18n="m_sunset">Sunset</div></div>
+        </div>
+
+        <div class="forecast-strip" id="forecastStrip" aria-label="Five day forecast"></div>
+        <p class="data-note"><span data-i18n="data_src">Live weather and marine data from Open-Meteo. Coordinates for Orchard Beach, Long Island Sound.</span></p>
+      </div>
+    </section>
+
+    <!-- SAFETY (kept from v1) -->
+    <section class="section safety" id="safety">
+      <div class="wrap">
+        <p class="kicker" data-i18n="k_safety">Stay safe</p>
+        <h2 data-i18n="h_safety">Lifeguards and beach flags</h2>
+        <p class="section-intro" data-i18n="p_safety">Swimming is allowed only when lifeguards are on duty, daily from 10 AM to 6 PM in season. Closed sections are marked with red flags. Current status by beach section is below.</p>
+
+        <div class="flags-grid" id="flagsGrid"></div>
+
+        <div class="flag-legend">
+          <span class="legend-item"><span class="flag-dot green"></span><span data-i18n="flag_green">Green, calm and open</span></span>
+          <span class="legend-item"><span class="flag-dot yellow"></span><span data-i18n="flag_yellow">Yellow, use caution</span></span>
+          <span class="legend-item"><span class="flag-dot red"></span><span data-i18n="flag_red">Red, no swimming</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAN A VISIT (kept from v1, plus official NYC Parks links) -->
+    <section class="section visit" id="visit">
+      <div class="wrap">
+        <p class="kicker" data-i18n="k_visit">Getting here</p>
+        <h2 data-i18n="h_visit">Directions, Parking &amp; Transportation</h2>
+
+        <div class="visit-grid">
+          <div class="card directions-card">
+            <h3 data-i18n="c_directions">Directions</h3>
+            <p class="dir-addr" data-i18n="d_addr">Orchard Beach &amp; Promenade, Park Dr, Bronx, NY 10464</p>
+            <a class="dir-btn" href="https://www.google.com/maps/dir//Orchard+Beach+and+Promenade,+Park+Dr,+Bronx,+NY+10464/@40.8663627,-73.7944606,17z/data=!4m9!4m8!1m0!1m5!1m1!1s0x89c28c6007a99c73:0x8d82518be70188cb!2m2!1d-73.7931482!2d40.8662214!3e0" target="_blank" rel="noopener" data-i18n="d_gmaps">Open in Google Maps</a>
+            <p class="card-note" data-i18n="d_note">By car: Park Drive off Shore Road, straight into the main lot. By transit: 6 train to Pelham Bay Park (last stop), then the Bx12 bus to the beach.</p>
+          </div>
+
+          <div class="card parking-card">
+            <h3 data-i18n="c_parking">Parking</h3>
+            <p class="parking-today" id="parkingToday">--</p>
+            <ul class="rate-list">
+              <li><span data-i18n="p_wkday">Cars, weekdays</span><span>$10.00</span></li>
+              <li><span data-i18n="p_wknd">Cars, weekends and holidays</span><span>$12.00</span></li>
+              <li><span data-i18n="p_comm">Buses and commercial</span><span>$15.00</span></li>
+              <li><span data-i18n="p_senior">Seniors 65+, weekdays</span><span>$6.00</span></li>
+            </ul>
+            <p class="card-note" data-i18n="p_note">Ten trip coupon booklet: $75 weekdays, $90 weekends and holidays.</p>
+            <a class="promo-inline" href="#plan" id="parkingPromo">
+              <strong data-i18n="promo_tag">50% OFF PARKING</strong>
+              <span id="parkingPromoText" data-i18n="promo_parking">Reserve your day in the trip planner and pay half at the booth with your code.</span>
+            </a>
+          </div>
+
+          <div class="card transit-card">
+            <h3 data-i18n="c_transit">Transportation</h3>
+            <ul class="transit-list">
+              <li><span class="badge train">6</span><span data-i18n="t_six">Take the 6 train to Pelham Bay Park, the last stop. The Bx12 connects there.</span></li>
+              <li><span class="badge bus">Bx12</span><span data-i18n="t_bx12">From the Pelham Bay Park 6 station straight to the beach, on summer weekends.</span></li>
+              <li><span class="badge bus">Bx29</span><span data-i18n="t_bx29">Runs nearby to City Island year round</span></li>
+              <li><span class="badge car">Car</span><span data-i18n="t_car">Large lot off Park Drive, Bronx, NY 10464</span></li>
+            </ul>
+            <div class="access-line">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 4a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm6 6-5 .9V22h-2v-6h-2v6H7V9.2a3 3 0 0 1 2.6-2.9L18 5.3z"/></svg>
+              <span data-i18n="t_access">Accessible ramps connect the upper pavilion, plaza, and beach.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- THE OFFICIAL FACTS: sourced from nycgovparks.org/facilities/beaches/1 -->
+        <div class="facts-card">
+          <div class="facts-head">
+            <h3 data-i18n="vf_title">The official facts</h3>
+            <a class="fact-src" href="https://www.nycgovparks.org/facilities/beaches/1" target="_blank" rel="noopener" data-i18n="vf_src">Source: NYC Parks, Orchard Beach &amp; Promenade</a>
+          </div>
+          <div class="facts-grid">
+            <div class="fact-block">
+              <h4 data-i18n="vf_hours_t">Hours &amp; swimming</h4>
+              <p data-i18n="vf_hours">During beach season, lifeguards are on duty daily from 10 AM to 6 PM. Swimming is prohibited when lifeguards are off duty and in closed sections, which are marked with signs and red flags. The official beach section map is updated each summer morning soon after 10 AM.</p>
+            </div>
+            <div class="fact-block">
+              <h4 data-i18n="vf_park_t">Parking, officially</h4>
+              <p data-i18n="vf_park">In season: $10 on weekdays and $12 on weekends and holidays for cars and vans. Buses, trucks, and commercial vehicles pay $15 every day. Seniors 65+ pay $6 on weekdays with valid ID at the toll booths. Coupon booklet: 10 trips for $75 (weekdays) or $90 (weekends and holidays).</p>
+            </div>
+            <div class="fact-block">
+              <h4 data-i18n="vf_access_t">Accessibility</h4>
+              <p data-i18n="vf_access">This is an accessible beach. Beach mats are available for wheelchair access, and beach wheelchairs are provided by reservation. Accessible ramps connect the pavilion, plaza, and sand.</p>
+            </div>
+            <div class="fact-block">
+              <h4 data-i18n="vf_contact_t">Contact &amp; directions</h4>
+              <p>
+                <span data-i18n="vf_phone">On Long Island Sound in Pelham Bay Park.</span><br/>
+                <a href="tel:+17188852275">(718) 885-2275</a><br/>
+                <a href="https://www.google.com/maps/dir/?api=1&amp;destination=Orchard+Beach%2C+Bronx%2C+NY" target="_blank" rel="noopener" data-i18n="vf_directions">Directions via Google Maps</a><br/>
+                <a href="https://www.nycgovparks.org/accessibility" target="_blank" rel="noopener" data-i18n="vf_access_link">NYC Parks Accessible Beaches info</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="official-links">
+          <h3 data-i18n="h_official">Official NYC Parks pages</h3>
+          <div class="official-grid">
+            <a class="official-link" href="https://www.nycgovparks.org/facilities/beaches/1" target="_blank" rel="noopener">
+              <span class="ol-title" data-i18n="ol_facility">Orchard Beach &amp; Promenade</span>
+              <span class="ol-sub">nycgovparks.org/facilities/beaches/1</span>
+            </a>
+            <a class="official-link" href="https://www.nycgovparks.org/facilities/beaches" target="_blank" rel="noopener">
+              <span class="ol-title" data-i18n="ol_beaches">All NYC Beaches</span>
+              <span class="ol-sub">nycgovparks.org/facilities/beaches</span>
+            </a>
+            <a class="official-link" href="https://www.nycgovparks.org/rules/orchard-beach" target="_blank" rel="noopener">
+              <span class="ol-title" data-i18n="ol_rules">Orchard Beach Rules</span>
+              <span class="ol-sub">nycgovparks.org/rules/orchard-beach</span>
+            </a>
+            <a class="official-link" href="https://www.nycgovparks.org/parks/pelham-bay-park/events" target="_blank" rel="noopener">
+              <span class="ol-title" data-i18n="ol_events">Pelham Bay Park Events</span>
+              <span class="ol-sub">nycgovparks.org/parks/pelham-bay-park/events</span>
+            </a>
+            <a class="official-link" href="https://www.nycgovparks.org/parks/pelham-bay-park" target="_blank" rel="noopener">
+              <span class="ol-title" data-i18n="ol_park">Pelham Bay Park</span>
+              <span class="ol-sub">nycgovparks.org/parks/pelham-bay-park</span>
+            </a>
+            <a class="official-link" href="https://www.nyc.gov/site/doh/services/beaches.page" target="_blank" rel="noopener">
+              <span class="ol-title" data-i18n="ol_water">Beach Water Quality (NYC Health)</span>
+              <span class="ol-sub">nyc.gov/site/doh/services/beaches.page</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BEACH RULES: new -->
+    <section class="section rules" id="rules">
+      <div class="wrap">
+        <p class="kicker" data-i18n="k_rules">Know before you go</p>
+        <h2 data-i18n="h_rules">Beach rules</h2>
+        <p class="section-intro" data-i18n="p_rules">A quick summary of the most important rules. The official and complete list is maintained by NYC Parks at the link below.</p>
+
+        <div class="rules-grid">
+          <div class="rule-card"><span class="rule-ic">&#127946;</span><h4 data-i18n="r1_t">Swim with lifeguards only</h4><p data-i18n="r1_p">Swimming is allowed only when lifeguards are on duty, 10 AM to 6 PM in season. Red flags mean no swimming.</p></div>
+          <div class="rule-card"><span class="rule-ic">&#127866;</span><h4 data-i18n="r2_t">No alcohol or glass</h4><p data-i18n="r2_p">Alcoholic beverages and glass containers are not permitted on the beach or promenade.</p></div>
+          <div class="rule-card"><span class="rule-ic">&#128021;</span><h4 data-i18n="r3_t">No pets on the sand</h4><p data-i18n="r3_p">Pets are not allowed on the beach or boardwalk. Service animals are always welcome.</p></div>
+          <div class="rule-card"><span class="rule-ic">&#127859;</span><h4 data-i18n="r4_t">Barbecue in marked areas</h4><p data-i18n="r4_p">Grilling is allowed only in the designated picnic and barbecue areas, never on the sand.</p></div>
+          <div class="rule-card"><span class="rule-ic">&#128266;</span><h4 data-i18n="r5_t">Keep the volume neighborly</h4><p data-i18n="r5_p">Amplified sound requires a permit. Be considerate in quiet areas.</p></div>
+          <div class="rule-card"><span class="rule-ic">&#128681;</span><h4 data-i18n="r6_t">Leave no trace</h4><p data-i18n="r6_p">Use trash and recycling bins, and pack out what you pack in. Littering carries fines.</p></div>
+        </div>
+
+        <div class="ev-fact-card section-official">
+          <h4 data-i18n="sf_t">Safety (official)</h4>
+          <ul>
+            <li data-i18n="sf_season">Beaches are open Memorial Day weekend through the Sunday after Labor Day. Lifeguards daily 10 AM to 6 PM; swimming is prohibited when they are off duty and in closed sections.</li>
+            <li data-i18n="sf_sun">Free SPF 30 sunscreen program at all eight NYC beaches; apply before you go and reapply often.</li>
+            <li><a href="https://www.nyc.gov/site/doh/services/beaches.page" target="_blank" rel="noopener" data-i18n="sf_water">Water quality advisories (NYC Health)</a></li>
+            <li><a href="https://www.weather.gov/safety/ripcurrent" target="_blank" rel="noopener" data-i18n="sf_rip">Rip current safety (National Weather Service)</a></li>
+          </ul>
+        </div>
+
+        <a class="rules-cta" href="https://www.nycgovparks.org/rules/orchard-beach" target="_blank" rel="noopener" data-i18n="rules_cta">Read the full official rules at NYC Parks</a>
+      </div>
+    </section>
+
+    <!-- MAP: new, powered by the locations database -->
+    <section class="section mapsec" id="map">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="kicker" data-i18n="k_map">Find your way</p>
+            <h2 data-i18n="h_map">Interactive beach map</h2>
+          </div>
+          <span class="live-badge" id="mapSource" hidden><span class="proto-dot"></span> <span data-i18n="map_db">From the locations database</span></span>
+        </div>
+        <p class="section-intro" data-i18n="p_map">Every place on the 115 acre crescent: the pavilion, promenade, playgrounds, picnic groves, the 26 courts, snack bars, changing areas, and the nature trails. Filter by category, click a pin for photos and details. The concierge uses this same database to plan your day.</p>
+
+        <div class="filters" id="mapFilters"></div>
+        <div id="obMap" aria-label="Map of Orchard Beach locations"></div>
+        <div class="grid" id="locationGrid"></div>
+      </div>
+    </section>
+
+    <!-- FOOD (kept from v1) -->
+    <section class="section food" id="food">
+      <div class="wrap">
+        <p class="kicker" data-i18n="k_food">Pavilion and concessions</p>
+        <h2 data-i18n="h_food">Food and vendors</h2>
+        <p class="section-intro" data-i18n="p_food">Open and closed status updates with the current time. New pavilion concessions are opening through the summer, with a full restaurant planned for 2027.</p>
+        <div class="vendor-grid" id="vendorGrid"></div>
+
+        <div class="ev-fact-card section-official">
+          <h4 data-i18n="am_t">Amenities (official)</h4>
+          <ul>
+            <li data-i18n="am_bbq">Barbecuing is allowed, in the North and South Picnic Areas.</li>
+            <li data-i18n="am_snack">Snack Bar menu: hamburgers, hot dogs, chicken sandwiches, fried chicken, shish kabobs, fries, onion rings, nachos, wings, slushes, and soda.</li>
+            <li data-i18n="am_charge">Mobile charging station on site.</li>
+          </ul>
+          <a class="fact-src" href="https://www.nycgovparks.org/facilities/beaches/1" target="_blank" rel="noopener" data-i18n="facts_src">Facts: official NYC Parks page</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORE gallery (kept from v1) -->
+    <section class="section explore" id="explore">
+      <div class="wrap">
+        <p class="kicker" data-i18n="k_explore">The Bronx Riviera</p>
+        <h2 data-i18n="h_explore">Share Your Experience</h2>
+        <p class="section-intro" data-i18n="p_explore">A 1.1 mile crescent shoreline, a landmarked Art Deco pavilion reopened in 2026 after a $114 million restoration, a hexagonal promenade, courts, playgrounds, and the Orchard Beach Nature Center.</p>
+        <div class="gallery" id="gallery">
+          <figure class="shot shot-wide" data-img="images/pavilion.jpg" data-label="Art Deco Pavilion"><figcaption data-i18n="g_pavilion">The restored 1936 pavilion</figcaption></figure>
+          <figure class="shot" data-img="images/promenade.jpg" data-label="Hexagonal Promenade"><figcaption data-i18n="g_promenade">Hexagonal promenade</figcaption></figure>
+          <figure class="shot" data-img="images/shoreline.jpg" data-label="Crescent Shoreline"><figcaption data-i18n="g_shore">Crescent shoreline</figcaption></figure>
+          <figure class="shot" data-img="images/courts.jpg" data-label="Courts and Play"><figcaption data-i18n="g_courts">26 courts and playgrounds</figcaption></figure>
+          <figure class="shot" data-img="images/nature.jpg" data-label="Nature Center"><figcaption data-i18n="g_nature">Nature Center</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHARE YOUR DAY: visitor photo / PDF submissions, staff reviewed -->
+    <section class="section share" id="share">
+      <div class="wrap ask-wrap">
+        <div class="ask-copy">
+          <p class="kicker" data-i18n="k_share">Your beach, your shots</p>
+          <h2 data-i18n="h_share">Share your photos</h2>
+          <p class="section-intro" data-i18n="p_share">Caught a great sunset on the promenade? Send us your pictures (or a PDF, for flyers and artwork). The best ones may appear in the gallery and on the map.</p>
+          <div class="share-disclaimer">
+            <strong data-i18n="share_disc_t">Before you submit</strong>
+            <p data-i18n="share_disc_p">Every submission is reviewed by Parks staff before anything is published. Please only send content you took yourself and have the right to share, with no identifiable people without their permission, and nothing inappropriate. Submissions that do not meet these guidelines are removed.</p>
+          </div>
+        </div>
+        <form class="ask-form" id="shareForm" novalidate>
+          <div class="field">
+            <label for="sName" data-i18n="f_name">Name</label>
+            <input id="sName" name="name" type="text" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="sEmail" data-i18n="f_email">Email</label>
+            <input id="sEmail" name="email" type="email" autocomplete="email" />
+          </div>
+          <div class="field field-full">
+            <label for="sFile" data-i18n="f_file">Picture or PDF (max 10 MB)</label>
+            <input id="sFile" name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required />
+          </div>
+          <div class="field field-full">
+            <label for="sCaption" data-i18n="f_caption">Caption (where and when)</label>
+            <input id="sCaption" name="caption" type="text" maxlength="255" placeholder="Sunset from section 5, July 2026" />
+          </div>
+          <label class="consent-row field-full">
+            <input id="sConsent" type="checkbox" required />
+            <span data-i18n="f_consent">I took this myself, I have the right to share it, and I understand Parks staff will review it before any use.</span>
+          </label>
+          <button class="submit-btn" type="submit" data-i18n="f_upload">Submit for review</button>
+          <p class="form-status" id="shareStatus" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- MY TRIP: email capture + concierge entry point -->
+    <section class="section plan" id="plan">
+      <div class="wrap ask-wrap">
+        <div class="ask-copy">
+          <p class="kicker" data-i18n="k_plan">Make it a day</p>
+          <h2 data-i18n="h_plan">Plan your trip</h2>
+          <p class="section-intro" data-i18n="p_plan">Tell us when you are coming and what you love, and the Beach Concierge builds a personalized itinerary with pictures, timed like a day at the beach: Rare (2 hours), Medium Rare (4 hours), or Well Done (6 hours). We can email it to you and add it to your calendar.</p>
+          <ul class="doneness" aria-hidden="true">
+            <li><span class="d-chip rare">RARE</span><span data-i18n="d_rare">2 hours, the essentials</span></li>
+            <li><span class="d-chip mid">MEDIUM RARE</span><span data-i18n="d_mid">4 hours, beach plus play</span></li>
+            <li><span class="d-chip well">WELL DONE</span><span data-i18n="d_well">6 hours, the full Riviera</span></li>
+          </ul>
+        </div>
+        <form class="ask-form" id="planForm" novalidate>
+          <div class="field">
+            <label for="pName" data-i18n="f_name">Name</label>
+            <input id="pName" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="pEmail" data-i18n="f_email">Email</label>
+            <input id="pEmail" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="pDate" data-i18n="f_date">Visit date</label>
+            <input id="pDate" name="visit_date" type="date" required />
+          </div>
+          <div class="field">
+            <label for="pStart" data-i18n="f_start">Arriving at</label>
+            <select id="pStart" name="start_time">
+              <option value="09:00">9:00 AM</option>
+              <option value="10:00" selected>10:00 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="12:00">12:00 PM</option>
+              <option value="13:00">1:00 PM</option>
+              <option value="14:00">2:00 PM</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pParty" data-i18n="f_party">Party size</label>
+            <select id="pParty" name="party_size">
+              <option>1</option><option selected>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option value="8">7+</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pArrive" data-i18n="f_arrive">Arriving by</label>
+            <select id="pArrive" name="arrival_mode">
+              <option value="car" data-i18n="f_car">Car (parking lot)</option>
+              <option value="bus" data-i18n="f_bus">Bx12 bus</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pDur" data-i18n="f_dur">How long</label>
+            <select id="pDur" name="duration">
+              <option value="2" data-i18n="f_d2">Rare, 2 hours</option>
+              <option value="4" selected data-i18n="f_d4">Medium Rare, 4 hours</option>
+              <option value="6" data-i18n="f_d6">Well Done, 6 hours</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-i18n="f_interests">What do you love?</label>
+            <div class="interest-chips" id="interestChips">
+              <label class="ichip"><input type="checkbox" value="beach" checked /><span data-i18n="i_beach">Beach time</span></label>
+              <label class="ichip"><input type="checkbox" value="family" /><span data-i18n="i_family">Kids &amp; family</span></label>
+              <label class="ichip"><input type="checkbox" value="sports" /><span data-i18n="i_sports">Sports</span></label>
+              <label class="ichip"><input type="checkbox" value="nature" /><span data-i18n="i_nature">Nature walks</span></label>
+              <label class="ichip"><input type="checkbox" value="food" checked /><span data-i18n="i_food">Food</span></label>
+            </div>
+          </div>
+          <button class="submit-btn" type="submit" data-i18n="f_build">Save my plan and build my itinerary</button>
+          <p class="form-status" id="planStatus" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ASK (kept from v1) -->
+    <section class="section ask" id="ask">
+      <div class="wrap ask-wrap">
+        <div class="ask-copy">
+          <p class="kicker" data-i18n="k_ask">Questions</p>
+          <h2 data-i18n="h_ask">Ask the beach</h2>
+          <p class="section-intro" data-i18n="p_ask">Ask about conditions, events, vendors, or accessibility. In the full system this reaches beach staff. In this prototype it shows how the contact flow works.</p>
+        </div>
+        <form class="ask-form" id="askForm" novalidate>
+          <div class="field">
+            <label for="qName" data-i18n="f_name">Name</label>
+            <input id="qName" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="qEmail" data-i18n="f_email">Email</label>
+            <input id="qEmail" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="qTopic" data-i18n="f_topic">Topic</label>
+            <select id="qTopic" name="topic">
+              <option data-i18n="f_t_cond">Conditions</option>
+              <option data-i18n="f_t_event">Events</option>
+              <option data-i18n="f_t_vendor">Vendors</option>
+              <option data-i18n="f_t_access">Accessibility</option>
+              <option data-i18n="f_t_other">Other</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label for="qMsg" data-i18n="f_msg">Message</label>
+            <textarea id="qMsg" name="message" rows="3" required></textarea>
+          </div>
+          <button class="submit-btn" type="submit" data-i18n="f_send">Send question</button>
+          <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+  <div class="bottom-logo-row">
+    <a href="#top" aria-label="Return to the top of the page">
+      <img
+        class="bottom-logo-image"
+        src="./images/orchard-beach-logo.png"
+        alt="Orchard Beach logo"
+      >
+    </a>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <span class="brand-name">Orchard Beach</span>
+        <p data-i18n="foot_desc">The Bronx's only public beach, in Pelham Bay Park. Concept prototype for a single, mobile friendly information hub.</p>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="foot_hours">Season and hours</h4>
+        <p data-i18n="foot_hours_v">Open Memorial Day weekend through the Sunday after Labor Day. Lifeguards daily 10 AM to 6 PM.</p>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="foot_official">Official pages</h4>
+        <p>
+          <a href="https://www.nycgovparks.org/facilities/beaches/1" target="_blank" rel="noopener">Orchard Beach &amp; Promenade</a><br/>
+          <a href="https://www.nycgovparks.org/rules/orchard-beach" target="_blank" rel="noopener" data-i18n="ol_rules">Orchard Beach Rules</a><br/>
+          <a href="https://www.nycgovparks.org/parks/pelham-bay-park/events" target="_blank" rel="noopener" data-i18n="ol_events">Pelham Bay Park Events</a><br/>
+          <a href="https://www.nycgovparks.org/facilities/beaches" target="_blank" rel="noopener" data-i18n="ol_beaches">All NYC Beaches</a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="foot_credit">About this build</h4>
+        <p data-i18n="foot_credit_v">Fordham University, Web Application Development. Group 2: Ishtiaq Iqbal, JP Romero, Lauren Zecca. Data from Open-Meteo. Not affiliated with NYC Parks.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- STAFF QUICK PANEL (kept) + link to the full dashboard -->
+  <div class="modal-overlay" id="staffModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="staffTitle">
+      <div class="modal-head">
+        <h3 id="staffTitle" data-i18n="staff_title">Staff dashboard</h3>
+        <button class="modal-close" id="closeStaff" aria-label="Close">&times;</button>
+      </div>
+      <p class="modal-intro" data-i18n="staff_intro">Quick controls for lifeguard flags and alerts. The full dashboard adds visitor analytics, crowd forecasts by location, and the email list.</p>
+      <div class="staff-body">
+        <div class="staff-block">
+          <h4 data-i18n="staff_flags">Lifeguard flags by section</h4>
+          <div class="staff-flags" id="staffFlags"></div>
+        </div>
+        <div class="staff-block">
+          <h4 data-i18n="staff_alert">Post a safety alert</h4>
+          <div class="staff-alert-row">
+            <input id="alertInput" type="text" placeholder="High surf advisory until 6 PM" />
+            <button id="postAlert" data-i18n="staff_post">Post</button>
+          </div>
+          <p class="staff-hint" data-i18n="staff_hint">Alerts appear at the top of the public page.</p>
+        </div>
+        <a class="hero-cta staff-full-link" href="staff.php" data-i18n="staff_full">Open the full staff dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert-banner" id="alertBanner" hidden>
+    <span id="alertText"></span>
+    <button id="clearAlert" aria-label="Dismiss alert">&times;</button>
+  </div>
+
+  <!-- BEACH CONCIERGE widget -->
+  <button class="concierge-fab" id="conciergeFab" aria-label="Open the Beach Concierge">
+    <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+      <circle cx="20" cy="20" r="19" fill="#E8A020"/>
+      <circle cx="20" cy="17" r="7" fill="#fff"/>
+      <path d="M8 33c1.5-6 6.5-9 12-9s10.5 3 12 9" fill="#fff"/>
+      <circle cx="17.5" cy="16" r="1.4" fill="#2C5A3B"/><circle cx="22.5" cy="16" r="1.4" fill="#2C5A3B"/>
+      <path d="M17 19.5c1.8 1.6 4.2 1.6 6 0" stroke="#2C5A3B" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>
+    <span class="fab-pulse" aria-hidden="true"></span>
+  </button>
+
+  <div class="concierge-panel" id="conciergePanel" hidden>
+    <div class="cc-head">
+      <div class="cc-title">
+        <strong data-i18n="cc_title">Beach Concierge</strong>
+        <span class="cc-sub" id="ccMode" data-i18n="cc_local">Local knowledge base</span>
+      </div>
+      <button class="modal-close" id="closeConcierge" aria-label="Close">&times;</button>
+    </div>
+    <div class="cc-log" id="ccLog" aria-live="polite"></div>
+    <div class="cc-quick" id="ccQuick"></div>
+    <form class="cc-input" id="ccForm">
+      <input id="ccText" type="text" data-i18n-ph="cc_ph" placeholder="Ask me anything, or say: plan my day" autocomplete="off" />
+      <button type="submit" aria-label="Send">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- ITINERARY SLIDESHOW modal -->
+  <div class="modal-overlay" id="slideModal" hidden>
+    <div class="modal slide-modal" role="dialog" aria-modal="true" aria-labelledby="slideTitle">
+      <div class="modal-head">
+        <h3 id="slideTitle">Your Orchard Beach Day</h3>
+        <button class="modal-close" id="closeSlides" aria-label="Close">&times;</button>
+      </div>
+      <div class="slide-stage" id="slideStage">
+        <div class="slide-media" id="slideMedia"></div>
+        <div class="slide-info">
+          <div class="slide-time" id="slideTime"></div>
+          <h4 id="slideName"></h4>
+          <p id="slideDesc"></p>
+        </div>
+      </div>
+      <div class="slide-controls">
+        <button id="slidePrev" class="refresh-btn" aria-label="Previous">&larr;</button>
+        <div class="slide-dots" id="slideDots"></div>
+        <button id="slidePlay" class="refresh-btn" aria-label="Play slideshow">&#9654;</button>
+        <button id="slideNext" class="refresh-btn" aria-label="Next">&rarr;</button>
+      </div>
+      <div class="slide-actions">
+        <button class="hero-cta" id="icsBtn" data-i18n="it_ics">Add to calendar (.ics)</button>
+        <button class="hero-cta hero-cta-alt" id="emailItinBtn" data-i18n="it_email">Email me this itinerary</button>
+      </div>
+      <p class="form-status" id="slideStatus" role="status"></p>
+    </div>
+  </div>
+
+  <!-- Google Translate mount point (hidden; loaded on demand from the language menu) -->
+  <div id="google_translate_element" class="gt-hidden" aria-hidden="true"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/concierge.js"></script>
+</body>
+</html>
